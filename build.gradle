@@ -1,0 +1,93 @@
+plugins {
+    id 'fabric-loom' version '1.8-SNAPSHOT'
+    id 'maven-publish'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+    archivesName = project.archives_base_name
+}
+
+repositories {
+    mavenCentral()
+    maven { url 'https://repo.repsy.io/mvn/jiraiyah/jilibs' }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+	// Ji Lib Mods Dependency <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    modImplementation include("jiraiyah.reference:jireference:${jireference_version}")
+    modImplementation include("jiraiyah.jiralib:jiralib:${jiralib_version}")
+}
+
+processResources {
+    inputs.property "version", project.version
+
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = 21
+}
+
+java {
+    withSourcesJar()
+
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+jar {
+    from("LICENSE") {
+        rename { "${it}_${project.base.archivesName.get()}" }
+    }
+}
+
+def ENV = System.getenv()
+def systemRepsyURL = ENV.REPSY_URL
+def systemRepsyUsername = ENV.REPSY_USERNAME
+def systemRepsyPassword = ENV.REPSY_PASSWORD
+
+Properties properties = new Properties()
+def propertiesFile = project.rootProject.file('local.properties')
+if (propertiesFile.exists())
+    properties.load(propertiesFile.newDataInputStream())
+
+def localRepsyUrl = properties.getProperty('REPSY_URL')
+def localRepsyUsername = properties.getProperty('REPSY_USERNAME')
+def localRepsyPassword = properties.getProperty('REPSY_PASSWORD')
+
+def repsyUrl = localRepsyUrl != null ? localRepsyUrl : systemRepsyURL
+def repsyUsername = localRepsyUsername != null ? localRepsyUsername : systemRepsyUsername
+def repsyPassword = localRepsyPassword != null ? localRepsyPassword : systemRepsyPassword
+
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            artifactId = 'jifluid'
+            from components.java
+        }
+    }
+
+    repositories {
+        if (repsyUrl) {
+            maven {
+                url repsyUrl
+                credentials {
+                    username repsyUsername
+                    password repsyPassword
+                }
+            }
+        }
+    }
+}

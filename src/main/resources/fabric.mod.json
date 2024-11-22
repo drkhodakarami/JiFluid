@@ -1,0 +1,17 @@
+{
+	"schemaVersion": 1,
+	"id": "jifluid",
+	"version": "${version}",
+	"name": "JiFluid",
+	"description": "",
+	"authors": [
+		"Jiraiyah"
+	],
+	"license": "MIT",
+	"environment": "*",
+	"depends": {
+		"fabricloader": ">=0.16.9",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}
